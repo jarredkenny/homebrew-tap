@@ -78,14 +78,14 @@ class Jmux < Formula
     # against a private tmux socket and confirm the server came up with jmux's
     # materialized config, which exercises asset materialization, the tmux
     # spawn, and the config path all at once.
-    assert_match version.to_s, shell_output("#{bin}/jmux --version")
+    assert_match version.to_s, shell_output("#{bin/"jmux"} --version")
 
     socket = "jmux-brew-test-#{Process.pid}"
     require "pty"
     begin
-      PTY.spawn("#{bin}/jmux", "--socket", socket) do |_r, _w, pid|
+      PTY.spawn(bin/"jmux", "--socket", socket) do |_r, _w, pid|
         sleep 6
-        detach = shell_output("tmux -L #{socket} show-options -g detach-on-destroy 2>/dev/null", 0)
+        detach = shell_output("tmux -L #{socket} show-options -g detach-on-destroy 2>/dev/null")
         Process.kill("TERM", pid)
         assert_match "off", detach
       end

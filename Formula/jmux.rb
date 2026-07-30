@@ -80,17 +80,29 @@ class Jmux < Formula
     # spawn, and the config path all at once.
     assert_match version.to_s, shell_output("#{bin/"jmux"} --version")
 
-    socket = "jmux-brew-test-#{Process.pid}"
+    # tmux puts its socket under /tmp/tmux-<uid> by default, which the test
+    # sandbox denies — the server then never starts and the failure looks like
+    # jmux's. TMUX_TMPDIR moves it somewhere writable.
+    ENV["TMUX_TMPDIR"] = testpath
+    socket = "jmux-brew-test"
+
     require "pty"
     begin
       PTY.spawn(bin/"jmux", "--socket", socket) do |_r, _w, pid|
-        sleep 6
-        detach = shell_output("tmux -L #{socket} show-options -g detach-on-destroy 2>/dev/null")
+        # Poll rather than sleeping a fixed interval: first run materializes
+        # assets before tmux is spawned, and a fixed wait is either flaky or
+        # needlessly slow.
+        detach = ""
+        20.times do
+          sleep 1
+          detach = `tmux -L #{socket} show-options -g detach-on-destroy 2>/dev/null`.strip
+          break unless detach.empty?
+        end
         Process.kill("TERM", pid)
         assert_match "off", detach
       end
     ensure
-      system "tmux", "-L", socket, "kill-server"
+      quiet_system "tmux", "-L", socket, "kill-server"
     end
   end
 end

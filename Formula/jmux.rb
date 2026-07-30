@@ -73,36 +73,27 @@ class Jmux < Formula
   end
 
   test do
-    # `--version` exits before any of the interesting startup work, so on its
-    # own it proves almost nothing. The second assertion is the real one: boot
-    # against a private tmux socket and confirm the server came up with jmux's
-    # materialized config, which exercises asset materialization, the tmux
-    # spawn, and the config path all at once.
     assert_match version.to_s, shell_output("#{bin/"jmux"} --version")
 
-    # tmux puts its socket under /tmp/tmux-<uid> by default, which the test
-    # sandbox denies — the server then never starts and the failure looks like
-    # jmux's. TMUX_TMPDIR moves it somewhere writable.
-    ENV["TMUX_TMPDIR"] = testpath
-    socket = "jmux-brew-test"
+    # The real risk in a compiled binary is asset materialization. Under
+    # `bun build --compile` the bundle lives on a virtual filesystem that tmux —
+    # a separate process — cannot read, so jmux must write its tmux config out
+    # to a real path before spawning tmux. If that regresses, the binary starts
+    # and then fails in a way `--version` would never catch.
+    #
+    # `--install-skill` drives exactly that path, and needs no tmux, no pty and
+    # no writable /tmp, so it is deterministic inside the test sandbox. Booting
+    # the full TUI here is not: Homebrew's sandbox stops tmux from starting a
+    # server, and the failure looks like jmux's rather than the sandbox's.
+    ENV["HOME"] = testpath
+    ENV["XDG_DATA_HOME"] = testpath/"data"
+    ENV["CLAUDE_CONFIG_DIR"] = testpath/"claude"
 
-    require "pty"
-    begin
-      PTY.spawn(bin/"jmux", "--socket", socket) do |_r, _w, pid|
-        # Poll rather than sleeping a fixed interval: first run materializes
-        # assets before tmux is spawned, and a fixed wait is either flaky or
-        # needlessly slow.
-        detach = ""
-        20.times do
-          sleep 1
-          detach = `tmux -L #{socket} show-options -g detach-on-destroy 2>/dev/null`.strip
-          break unless detach.empty?
-        end
-        Process.kill("TERM", pid)
-        assert_match "off", detach
-      end
-    ensure
-      quiet_system "tmux", "-L", socket, "kill-server"
-    end
+    system bin/"jmux", "--install-skill"
+    assert_path_exists testpath/"claude/skills/jmux-control/SKILL.md"
+
+    tmux_conf = Dir[testpath/"data/jmux/assets/*/config/tmux.conf"].first
+    refute_nil tmux_conf, "jmux did not materialize its tmux config"
+    assert_match "source-file", File.read(tmux_conf)
   end
 end

@@ -15,7 +15,7 @@
 class Jmux < Formula
   desc "Terminal workspace for agentic development"
   homepage "https://github.com/jarredkenny/jmux"
-  version "0.27.1"
+  version "0.27.2"
   license "AGPL-3.0-only"
 
   # tmux is the one hard runtime requirement, and Homebrew can guarantee it —
@@ -26,11 +26,11 @@ class Jmux < Formula
   on_macos do
     on_arm do
       url "https://github.com/jarredkenny/jmux/releases/download/v#{version}/jmux-#{version}-darwin-arm64.tar.gz"
-      sha256 "d6e2f0ef90dee86f83342094559ee5b5986baced03c54d3926d9a48ead52e8e6" # darwin-arm64
+      sha256 "4209894c6162fbf75039c1de0b12d0aab3ddc64ca3a83fc6ee1a5d0954f1503a" # darwin-arm64
     end
     on_intel do
       url "https://github.com/jarredkenny/jmux/releases/download/v#{version}/jmux-#{version}-darwin-x64.tar.gz"
-      sha256 "db2e2fe5940ab2205e2cc5dfaa0d05adb9df6324078e16d2286164d03c2b8919" # darwin-x64
+      sha256 "2a7a66e48396014946dc26885933d4daf8e7f9b3fc8ba16fad59229ff98bbe4f" # darwin-x64
     end
   end
 
@@ -40,7 +40,7 @@ class Jmux < Formula
   on_linux do
     on_arm do
       url "https://github.com/jarredkenny/jmux/releases/download/v#{version}/jmux-#{version}-linux-arm64.tar.gz"
-      sha256 "fb36384b37f86bbfc8189da1efb0e18fc37070960420ef1af796b6594d279df6" # linux-arm64
+      sha256 "469ba89947a86f038384f4385407a2455781c42339a0c042db5340ce342b82ac" # linux-arm64
     end
     on_intel do
       # The baseline build, deliberately. Homebrew cannot branch on whether the
@@ -50,7 +50,7 @@ class Jmux < Formula
       # every x86-64 machine is worth more than a difference no one running a
       # terminal UI can perceive.
       url "https://github.com/jarredkenny/jmux/releases/download/v#{version}/jmux-#{version}-linux-x64-baseline.tar.gz"
-      sha256 "ca06fd23dd991dd31a66bfacd13e6cde46ed68aa390b4df524d7805889fbf5dc" # linux-x64-baseline
+      sha256 "217c69f50163646d3314de29c38afc921f411c017eba8d2c5690f70a3f81818f" # linux-x64-baseline
     end
   end
 
